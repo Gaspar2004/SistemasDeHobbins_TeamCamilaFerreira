@@ -1,0 +1,16 @@
+# Config con IPs/apellidos reales del entorno (cada uno la suya; versionar solo la plantilla)
+config/nodes.json
+
+# Logs de notificaciones del examinador de prueba
+notificaciones.log
+**/notificaciones.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Artefactos intermedios del generador de PDF (se regeneran)
+PLAN.html
+docs/*.html

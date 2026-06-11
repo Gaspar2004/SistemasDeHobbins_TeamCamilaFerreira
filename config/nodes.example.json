@@ -1,0 +1,19 @@
+{
+  "_comment": "Plantilla del registro de nodos. Copiar a nodes.json y completar IPs y apellidos. Puertos distintos por nodo => sirve tanto en localhost (todos en una PC) como en LAN (cada uno en su laptop).",
+  "examiner": { "ip": "192.168.1.100", "port": 55555 },
+  "notify_delay_seconds": 1,
+  "nodes": {
+    "VoLTE UE 1": { "ip": "192.168.1.11", "port": 6001, "apellido": "" },
+    "VoLTE UE 2": { "ip": "192.168.1.12", "port": 6002, "apellido": "" },
+    "eNB":        { "ip": "192.168.1.13", "port": 6003, "apellido": "" },
+    "MME":        { "ip": "192.168.1.14", "port": 6004, "apellido": "" },
+    "SGW":        { "ip": "192.168.1.15", "port": 6005, "apellido": "" },
+    "PGW":        { "ip": "192.168.1.16", "port": 6006, "apellido": "" },
+    "PCRF":       { "ip": "192.168.1.17", "port": 6007, "apellido": "" },
+    "HSS":        { "ip": "192.168.1.18", "port": 6008, "apellido": "" },
+    "P-CSCF":     { "ip": "192.168.1.19", "port": 6009, "apellido": "" },
+    "I-CSCF":     { "ip": "192.168.1.20", "port": 6010, "apellido": "" },
+    "S-CSCF":     { "ip": "192.168.1.21", "port": 6011, "apellido": "" },
+    "TAS":        { "ip": "192.168.1.22", "port": 6012, "apellido": "" }
+  }
+}
