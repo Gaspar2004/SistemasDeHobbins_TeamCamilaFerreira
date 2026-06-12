@@ -1,0 +1,19 @@
+{
+  "_comment": "Config de la LAN para la prueba de 3 PCs. Roure=10.252.59.150 (UE/eNB/MME + examinador), Birenbaum=10.252.51.194 (SGW/PGW/PCRF/HSS), Silva=10.252.60.139 (CSCFs/TAS). Cada PC: copiar este archivo a nodes.json. Si una IP cambia (WiFi), actualizar aca y volver a copiar.",
+  "examiner": { "ip": "10.252.59.150", "port": 55555 },
+  "notify_delay_seconds": 1,
+  "nodes": {
+    "UE1":    { "ip": "10.252.59.150", "port": 6001, "apellido": "Roure" },
+    "UE2":    { "ip": "10.252.59.150", "port": 6002, "apellido": "Roure" },
+    "eNB":    { "ip": "10.252.59.150", "port": 6003, "apellido": "Roure" },
+    "MME":    { "ip": "10.252.59.150", "port": 6004, "apellido": "Roure" },
+    "SGW":    { "ip": "10.252.51.194", "port": 6005, "apellido": "Birenbaum" },
+    "PGW":    { "ip": "10.252.51.194", "port": 6006, "apellido": "Birenbaum" },
+    "PCRF":   { "ip": "10.252.51.194", "port": 6007, "apellido": "Birenbaum" },
+    "HSS":    { "ip": "10.252.51.194", "port": 6008, "apellido": "Birenbaum" },
+    "P-CSCF": { "ip": "10.252.60.139", "port": 6009, "apellido": "Silva" },
+    "I-CSCF": { "ip": "10.252.60.139", "port": 6010, "apellido": "Silva" },
+    "S-CSCF": { "ip": "10.252.60.139", "port": 6011, "apellido": "Silva" },
+    "TAS":    { "ip": "10.252.60.139", "port": 6012, "apellido": "Silva" }
+  }
+}
