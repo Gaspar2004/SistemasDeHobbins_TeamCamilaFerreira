@@ -1,14 +1,5 @@
-"""Nodo S-CSCF. STUB: completar handle() segun docs/01_secuencia_mensajes.md.
-
-Mensajes de este nodo (BORRADOR; nombres de 'action' tentativos, cerrar con el equipo):
-  - SIP_REGISTER (1er) de I-CSCF -> MAR a HSS
-  - MAA de HSS                   -> 401 a I-CSCF
-  - SIP_REGISTER (2do) de I-CSCF -> SAR a HSS
-  - SAA de HSS                   -> 200_OK a I-CSCF + SIP_REGISTER(3rd-party) a TAS
-  - SIP_SUBSCRIBE de P-CSCF      -> 200_OK_SUBSCRIBE + SIP_NOTIFY a P-CSCF
-  - 200_OK_NOTIFY de P-CSCF (ULTIMO) -> ademas: self.notify_raw({'message': 'fin'})
-  NOTA: distinguir 1er vs 2do REGISTER requiere estado por 'session'.
-"""
+"""Nodo S-CSCF. Serving CSCF. Registro del usuario + 3rd-party register al TAS.
+Emite {"message":"fin"} al final. Correr:  python scscf.py"""
 import os
 import sys
 
@@ -19,14 +10,38 @@ NODE = "S-CSCF"
 
 
 class SCSCF(Node):
+    def __init__(self, name):
+        super().__init__(name)
+        self.reg_count = {}   # por session: cuantos REGISTER vimos (1ro=desafio, 2do=ok)
+        self.pending = {}     # por session: el REGISTER en curso
+
     def handle(self, env):
-        action = env["action"]
-        src = env["Node_origin"]
-        payload = env.get("payload", {})
-        # TODO: implementar segun 'action' (y a veces 'src').
-        #       Devolver lista de (accion_saliente, nodo_destino, payload_dict).
-        #       [] si este nodo no reenvia nada para ese mensaje.
-        print(f"[{self.name}] (TODO) sin regla para {action} de {src}")
+        a = env["action"]
+        p = env.get("payload", {})
+        s = env.get("session")
+        if a == "SIP_REGISTER":
+            self.pending[s] = p
+            n = self.reg_count.get(s, 0) + 1
+            self.reg_count[s] = n
+            if n == 1:                       # 1er REGISTER -> desafio (MAR)
+                return [("MAR", "HSS", {"ims_id": p.get("ims_id")})]
+            return [("SAR", "HSS", {"ims_id": p.get("ims_id")})]   # 2do -> asignacion
+        if a == "MAA":                       # del HSS -> 401 con desafio
+            return [("401_UNAUTHORIZED", "I-CSCF", {"nonce": "abc123"})]
+        if a == "SAA":                       # del HSS -> OK al UE + registro 3rd-party al TAS
+            reg = self.pending.get(s, {})
+            return [("200_OK_REGISTER", "I-CSCF", {}),
+                    ("SIP_REGISTER", "TAS", reg)]
+        if a == "200_OK_THIRDPARTY":         # del TAS -> TAS quedo registrado
+            return []
+        if a == "SIP_SUBSCRIBE":             # del P-CSCF -> OK + NOTIFY con el estado
+            return [("200_OK_SUBSCRIBE", "P-CSCF", {}),
+                    ("SIP_NOTIFY", "P-CSCF", {"reg_state": "registered"})]
+        if a == "200_OK_NOTIFY":             # ULTIMO mensaje recibido -> notificacion "fin"
+            print(f"[{self.name}] *** Registration COMPLETA -> envio fin ***")
+            self.notify_raw({"message": "fin"})
+            return []
+        print(f"[{self.name}] (TODO) sin regla para {a} de {env['Node_origin']}")
         return []
 
 

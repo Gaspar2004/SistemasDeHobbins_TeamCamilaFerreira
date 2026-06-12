@@ -1,14 +1,4 @@
-"""Nodo P-CSCF. STUB: completar handle() segun docs/01_secuencia_mensajes.md.
-
-Mensajes de este nodo (BORRADOR; nombres de 'action' tentativos, cerrar con el equipo):
-  - SIP_REGISTER de UEx     -> SIP_REGISTER a I-CSCF
-  - 401 de I-CSCF           -> 401 a UEx
-  - 200_OK de I-CSCF        -> 200_OK a UEx   (ademas AAR a PCRF por Rx)
-  - SIP_SUBSCRIBE de UEx    -> SIP_SUBSCRIBE a S-CSCF
-  - 200_OK_SUBSCRIBE de S-CSCF -> a UEx
-  - SIP_NOTIFY de S-CSCF    -> SIP_NOTIFY a UEx
-  - 200_OK_NOTIFY de UEx    -> 200_OK_NOTIFY a S-CSCF
-"""
+"""Nodo P-CSCF. Proxy SIP de entrada del UE. Correr:  python pcscf.py"""
 import os
 import sys
 
@@ -18,15 +8,33 @@ from volte_common import Node  # noqa: E402
 NODE = "P-CSCF"
 
 
+def _ue(session):
+    return "UE1" if (session or "").startswith("ue1") else "UE2"
+
+
 class PCSCF(Node):
     def handle(self, env):
-        action = env["action"]
-        src = env["Node_origin"]
-        payload = env.get("payload", {})
-        # TODO: implementar segun 'action' (y a veces 'src').
-        #       Devolver lista de (accion_saliente, nodo_destino, payload_dict).
-        #       [] si este nodo no reenvia nada para ese mensaje.
-        print(f"[{self.name}] (TODO) sin regla para {action} de {src}")
+        a = env["action"]
+        p = env.get("payload", {})
+        ue = _ue(env.get("session"))
+        if a == "SIP_REGISTER":            # del UE -> al I-CSCF
+            return [("SIP_REGISTER", "I-CSCF", p)]
+        if a == "401_UNAUTHORIZED":        # del I-CSCF -> al UE
+            return [("401_UNAUTHORIZED", ue, p)]
+        if a == "200_OK_REGISTER":         # del I-CSCF -> reserva recursos (Rx) y avisa al UE
+            return [("AAR", "PCRF", {"ims_id": p.get("ims_id")}),
+                    ("200_OK_REGISTER", ue, {})]
+        if a == "AAA":                     # del PCRF -> nada mas
+            return []
+        if a == "SIP_SUBSCRIBE":           # del UE -> al S-CSCF
+            return [("SIP_SUBSCRIBE", "S-CSCF", p)]
+        if a == "200_OK_SUBSCRIBE":        # del S-CSCF -> al UE
+            return [("200_OK_SUBSCRIBE", ue, {})]
+        if a == "SIP_NOTIFY":              # del S-CSCF -> al UE
+            return [("SIP_NOTIFY", ue, p)]
+        if a == "200_OK_NOTIFY":           # del UE -> al S-CSCF
+            return [("200_OK_NOTIFY", "S-CSCF", {})]
+        print(f"[{self.name}] (TODO) sin regla para {a} de {env['Node_origin']}")
         return []
 
 

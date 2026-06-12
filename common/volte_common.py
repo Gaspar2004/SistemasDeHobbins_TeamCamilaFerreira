@@ -143,8 +143,13 @@ class Node:
         print(f"[{self.name}] <- {action} de {src}")
         self.notify_recibido(action, src, src_ip)        # +1s
         for out in (self.handle(env) or []):
-            out_action, dst, payload = out
+            # cada salida: (action, destino, payload) o (action, destino, payload, extra_notif)
+            extra = None
+            if len(out) == 4:
+                out_action, dst, payload, extra = out
+            else:
+                out_action, dst, payload = out
             dst_ip = self.nodes[dst]["ip"]
-            self.notify_a_enviar(out_action, dst, dst_ip)  # +1s
+            self.notify_a_enviar(out_action, dst, dst_ip, extra=extra)  # +1s
             self._send(out_action, dst, payload, env.get("session"))
             print(f"[{self.name}] -> {out_action} a {dst}")

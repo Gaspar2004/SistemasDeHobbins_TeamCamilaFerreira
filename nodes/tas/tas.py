@@ -1,11 +1,5 @@
-"""Nodo TAS. STUB: completar handle() segun docs/01_secuencia_mensajes.md.
-
-Mensajes de este nodo (BORRADOR; nombres de 'action' tentativos, cerrar con el equipo):
-  - SIP_REGISTER de S-CSCF  -> UDR a HSS
-  - UDA de HSS              -> 200_OK a S-CSCF
-  ULTIMO ENVIO: en la notify_a_enviar del 200_OK incluir extra={'ues_registrados': [...]}
-  (IMS Public Id + IP de cada UE + datos del usuario que vinieron del HSS).
-"""
+"""Nodo TAS. App server. Recibe el 3rd-party REGISTER, baja datos del HSS (Sh) y, en su
+ultimo envio, reporta los UE registrados. Correr:  python tas.py"""
 import os
 import sys
 
@@ -16,14 +10,29 @@ NODE = "TAS"
 
 
 class TAS(Node):
+    def __init__(self, name):
+        super().__init__(name)
+        self.pending = {}       # por session: datos del REGISTER (ims_id, ip)
+        self.registrados = {}   # ims_id -> {ims_public_id, ip, datos_hss}
+
     def handle(self, env):
-        action = env["action"]
-        src = env["Node_origin"]
-        payload = env.get("payload", {})
-        # TODO: implementar segun 'action' (y a veces 'src').
-        #       Devolver lista de (accion_saliente, nodo_destino, payload_dict).
-        #       [] si este nodo no reenvia nada para ese mensaje.
-        print(f"[{self.name}] (TODO) sin regla para {action} de {src}")
+        a = env["action"]
+        p = env.get("payload", {})
+        s = env.get("session")
+        if a == "SIP_REGISTER":          # del S-CSCF -> bajo datos del usuario al HSS (Sh)
+            self.pending[s] = p
+            return [("UDR", "HSS", {"ims_id": p.get("ims_id")})]
+        if a == "UDA":                   # del HSS -> guardo y respondo OK (ULTIMO ENVIO)
+            reg = self.pending.get(s, {})
+            self.registrados[reg.get("ims_id")] = {
+                "ims_public_id": reg.get("ims_id"),
+                "ip": reg.get("ip"),
+                "datos_hss": p,
+            }
+            extra = {"ues_registrados": list(self.registrados.values())}
+            print(f"[{self.name}] UE registrado: {reg.get('ims_id')} (total {len(self.registrados)})")
+            return [("200_OK_THIRDPARTY", "S-CSCF", {}, extra)]
+        print(f"[{self.name}] (TODO) sin regla para {a} de {env['Node_origin']}")
         return []
 
 

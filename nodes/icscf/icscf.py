@@ -1,11 +1,4 @@
-"""Nodo I-CSCF. STUB: completar handle() segun docs/01_secuencia_mensajes.md.
-
-Mensajes de este nodo (BORRADOR; nombres de 'action' tentativos, cerrar con el equipo):
-  - SIP_REGISTER de P-CSCF  -> UAR a HSS
-  - UAA de HSS              -> SIP_REGISTER a S-CSCF
-  - 401 de S-CSCF           -> 401 a P-CSCF
-  - 200_OK de S-CSCF        -> 200_OK a P-CSCF
-"""
+"""Nodo I-CSCF. Interrogating CSCF. Correr:  python icscf.py"""
 import os
 import sys
 
@@ -16,14 +9,24 @@ NODE = "I-CSCF"
 
 
 class ICSCF(Node):
+    def __init__(self, name):
+        super().__init__(name)
+        self.pending_reg = {}   # por session: el SIP_REGISTER en curso
+
     def handle(self, env):
-        action = env["action"]
-        src = env["Node_origin"]
-        payload = env.get("payload", {})
-        # TODO: implementar segun 'action' (y a veces 'src').
-        #       Devolver lista de (accion_saliente, nodo_destino, payload_dict).
-        #       [] si este nodo no reenvia nada para ese mensaje.
-        print(f"[{self.name}] (TODO) sin regla para {action} de {src}")
+        a = env["action"]
+        p = env.get("payload", {})
+        s = env.get("session")
+        if a == "SIP_REGISTER":        # del P-CSCF -> consulto al HSS quien es el S-CSCF
+            self.pending_reg[s] = p
+            return [("UAR", "HSS", {"ims_id": p.get("ims_id")})]
+        if a == "UAA":                 # del HSS -> reenvio el REGISTER al S-CSCF
+            return [("SIP_REGISTER", "S-CSCF", self.pending_reg.get(s, {}))]
+        if a == "401_UNAUTHORIZED":    # del S-CSCF -> al P-CSCF
+            return [("401_UNAUTHORIZED", "P-CSCF", p)]
+        if a == "200_OK_REGISTER":     # del S-CSCF -> al P-CSCF
+            return [("200_OK_REGISTER", "P-CSCF", p)]
+        print(f"[{self.name}] (TODO) sin regla para {a} de {env['Node_origin']}")
         return []
 
 
