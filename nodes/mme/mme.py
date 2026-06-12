@@ -1,4 +1,5 @@
-"""Nodo MME. Por ahora termina la cadena al recibir el Attach. Correr:  python mme.py"""
+"""Nodo MME. Maquina de Attach (sin el bloque de Authentication, que queda pendiente).
+Correr:  python mme.py"""
 import os
 import sys
 
@@ -10,12 +11,26 @@ NODE = "MME"
 
 class MME(Node):
     def handle(self, env):
-        if env["action"] == "ATTACH_REQUEST":
-            imsi = env.get("payload", {}).get("IMSI")
-            print(f"[{self.name}] Attach recibido (IMSI={imsi}).")
-            print(f"[{self.name}] Proximo paso real: Authentication con HSS + Update "
-                  f"Location (pendiente; HSS todavia no esta levantado).")
-            return []   # terminal en esta etapa de pruebas
+        a = env["action"]
+        p = env.get("payload", {})
+        if a == "ATTACH_REQUEST":
+            # TODO pendiente: bloque Authentication/Security con HSS y UE (A05-A08).
+            print(f"[{self.name}] Attach de IMSI={p.get('IMSI')} -> Update Location")
+            return [("UPDATE_LOCATION_REQUEST", "HSS", {"IMSI": p.get("IMSI")})]
+        if a == "UPDATE_LOCATION_ANSWER":
+            return [("CREATE_SESSION_REQUEST", "SGW",
+                     {"IMSI": p.get("IMSI"), "APN": "ims", "QCI": 5, "ARP": 1, "APN_AMBR": "100M"})]
+        if a == "CREATE_SESSION_RESPONSE":
+            # Ya tenemos la IP del UE -> activar el default bearer por la radio
+            return [("E_RAB_SETUP_REQUEST", "eNB",
+                     {"UE_IP": p.get("UE_IP"), "QCI": 5, "ARP": 1, "bearer": "default"})]
+        if a == "E_RAB_SETUP_RESPONSE":
+            return []   # se espera el Attach Complete del UE (via eNB)
+        if a == "ATTACH_COMPLETE":
+            return [("MODIFY_BEARER_REQUEST", "SGW", {})]
+        if a == "MODIFY_BEARER_RESPONSE":
+            print(f"[{self.name}] *** DEFAULT BEARER ESTABLECIDO -- Attach COMPLETO ***")
+            return []
         return []
 
 

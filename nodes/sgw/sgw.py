@@ -1,10 +1,4 @@
-"""Nodo SGW. STUB: completar handle() segun docs/01_secuencia_mensajes.md.
-
-Mensajes de este nodo (BORRADOR; nombres de 'action' tentativos, cerrar con el equipo):
-  - CREATE_SESSION_REQUEST de MME   -> CREATE_SESSION_REQUEST a PGW
-  - CREATE_SESSION_RESPONSE de PGW  -> CREATE_SESSION_RESPONSE a MME
-  - MODIFY_BEARER_REQUEST de MME    -> MODIFY_BEARER_RESPONSE a MME
-"""
+"""Nodo SGW. Relay de Create Session y Modify Bearer entre MME y PGW. Correr:  python sgw.py"""
 import os
 import sys
 
@@ -16,13 +10,15 @@ NODE = "SGW"
 
 class SGW(Node):
     def handle(self, env):
-        action = env["action"]
-        src = env["Node_origin"]
-        payload = env.get("payload", {})
-        # TODO: implementar segun 'action' (y a veces 'src').
-        #       Devolver lista de (accion_saliente, nodo_destino, payload_dict).
-        #       [] si este nodo no reenvia nada para ese mensaje.
-        print(f"[{self.name}] (TODO) sin regla para {action} de {src}")
+        a = env["action"]
+        p = env.get("payload", {})
+        if a == "CREATE_SESSION_REQUEST":      # de MME -> PGW
+            return [("CREATE_SESSION_REQUEST", "PGW", p)]
+        if a == "CREATE_SESSION_RESPONSE":     # de PGW -> MME
+            return [("CREATE_SESSION_RESPONSE", "MME", p)]
+        if a == "MODIFY_BEARER_REQUEST":       # de MME -> responde a MME
+            return [("MODIFY_BEARER_RESPONSE", "MME", {})]
+        print(f"[{self.name}] (TODO) sin regla para {a} de {env['Node_origin']}")
         return []
 
 

@@ -1,9 +1,4 @@
-"""Nodo PGW. STUB: completar handle() segun docs/01_secuencia_mensajes.md.
-
-Mensajes de este nodo (BORRADOR; nombres de 'action' tentativos, cerrar con el equipo):
-  - CREATE_SESSION_REQUEST de SGW   -> CCR a PCRF  (y asigna IP@ al UE)
-  - CCA de PCRF                     -> CREATE_SESSION_RESPONSE a SGW
-"""
+"""Nodo PGW. Asigna IP@ al UE y dispara la politica (Gx). Correr:  python pgw.py"""
 import os
 import sys
 
@@ -13,15 +8,22 @@ from volte_common import Node  # noqa: E402
 NODE = "PGW"
 
 
+def _ip_para(session):
+    return "10.0.0.11" if (session or "").startswith("ue1") else "10.0.0.12"
+
+
 class PGW(Node):
     def handle(self, env):
-        action = env["action"]
-        src = env["Node_origin"]
-        payload = env.get("payload", {})
-        # TODO: implementar segun 'action' (y a veces 'src').
-        #       Devolver lista de (accion_saliente, nodo_destino, payload_dict).
-        #       [] si este nodo no reenvia nada para ese mensaje.
-        print(f"[{self.name}] (TODO) sin regla para {action} de {src}")
+        a = env["action"]
+        p = env.get("payload", {})
+        if a == "CREATE_SESSION_REQUEST":      # de SGW -> CCR a PCRF (Gx)
+            return [("CCR", "PCRF",
+                     {"IMSI": p.get("IMSI"), "QCI": p.get("QCI"), "ARP": p.get("ARP")})]
+        if a == "CCA":                          # de PCRF -> responde a SGW con la IP del UE
+            ue_ip = _ip_para(env.get("session"))
+            return [("CREATE_SESSION_RESPONSE", "SGW",
+                     {"UE_IP": ue_ip, "QCI": 5, "ARP": 1, "APN_AMBR": "100M"})]
+        print(f"[{self.name}] (TODO) sin regla para {a} de {env['Node_origin']}")
         return []
 
 

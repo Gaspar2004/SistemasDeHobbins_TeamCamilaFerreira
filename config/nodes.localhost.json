@@ -1,0 +1,19 @@
+{
+  "_comment": "Config para probar TODO en una sola PC (localhost). Usar con: set VOLTE_CONFIG=config\\nodes.localhost.json  (o exportandolo) o copiandolo a nodes.json.",
+  "examiner": { "ip": "127.0.0.1", "port": 55555 },
+  "notify_delay_seconds": 1,
+  "nodes": {
+    "UE1":    { "ip": "127.0.0.1", "port": 6001, "apellido": "Roure" },
+    "UE2":    { "ip": "127.0.0.1", "port": 6002, "apellido": "Roure" },
+    "eNB":    { "ip": "127.0.0.1", "port": 6003, "apellido": "Roure" },
+    "MME":    { "ip": "127.0.0.1", "port": 6004, "apellido": "Roure" },
+    "SGW":    { "ip": "127.0.0.1", "port": 6005, "apellido": "Birenbaum" },
+    "PGW":    { "ip": "127.0.0.1", "port": 6006, "apellido": "Birenbaum" },
+    "PCRF":   { "ip": "127.0.0.1", "port": 6007, "apellido": "Birenbaum" },
+    "HSS":    { "ip": "127.0.0.1", "port": 6008, "apellido": "Birenbaum" },
+    "P-CSCF": { "ip": "127.0.0.1", "port": 6009, "apellido": "Silva" },
+    "I-CSCF": { "ip": "127.0.0.1", "port": 6010, "apellido": "Silva" },
+    "S-CSCF": { "ip": "127.0.0.1", "port": 6011, "apellido": "Silva" },
+    "TAS":    { "ip": "127.0.0.1", "port": 6012, "apellido": "Silva" }
+  }
+}

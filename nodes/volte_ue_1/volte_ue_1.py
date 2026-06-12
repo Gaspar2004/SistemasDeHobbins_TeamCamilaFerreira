@@ -21,10 +21,18 @@ class UE1(Node):
         self.originate("RRC_CONNECTION_REQUEST", "eNB", {"IMSI": IMSI}, session=SESSION)
 
     def handle(self, env):
-        if env["action"] == "RRC_CONNECTION_SETUP":
-            # Responde con el Setup Complete (que lleva el Attach Request / PDN Connectivity)
+        a = env["action"]
+        if a == "RRC_CONNECTION_SETUP":
             return [("RRC_CONNECTION_SETUP_COMPLETE", "eNB",
                      {"IMSI": IMSI, "attach_type": "EPS", "pdn_type": "IPv4v6"})]
+        if a == "RRC_CONNECTION_RECONFIGURATION":
+            # El UE acepta el default bearer: confirma la reconfig y manda el Accept
+            ue_ip = env.get("payload", {}).get("UE_IP")
+            print(f"[{self.name}] Default bearer activado. IP asignada: {ue_ip}")
+            return [
+                ("RRC_CONNECTION_RECONFIGURATION_COMPLETE", "eNB", {}),
+                ("UPLINK_DIRECT_TRANSFER", "eNB", {"nas": "ACTIVATE_DEFAULT_BEARER_ACCEPT"}),
+            ]
         return []
 
 

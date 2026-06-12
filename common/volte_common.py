@@ -29,6 +29,8 @@ def _now_hora():
 
 def load_config(path=None):
     if path is None:
+        path = os.environ.get("VOLTE_CONFIG")   # permite probar con otro config
+    if path is None:
         here = os.path.dirname(os.path.abspath(__file__))
         path = os.path.abspath(os.path.join(here, "..", "config", "nodes.json"))
     with open(path, encoding="utf-8") as f:
