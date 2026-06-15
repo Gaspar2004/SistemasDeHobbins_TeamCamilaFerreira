@@ -17,9 +17,9 @@ NODE = "HSS"
 
 # Perfil simulado de cada suscriptor (lo que el TAS reportara al final).
 SUBSCRIBERS = {
-    "748010000000001": {"msisdn": "59899111111", "ims_public_id": "tel:+59899111111",
+    "748010000000001": {"msisdn": "59899333333", "ims_public_id": "tel:+59899333333",
                         "nombre": "Usuario UE1", "perfil": "VoLTE"},
-    "748010000000002": {"msisdn": "59899222222", "ims_public_id": "tel:+59899222222",
+    "748010000000002": {"msisdn": "59899444444", "ims_public_id": "tel:+59899444444",
                         "nombre": "Usuario UE2", "perfil": "VoLTE"},
 }
 BY_IMS = {v["ims_public_id"]: v for v in SUBSCRIBERS.values()}
@@ -37,7 +37,13 @@ class HSS(Node):
                      {"IMSI": p.get("IMSI"), "msisdn": prof.get("msisdn"), "perfil": prof.get("perfil")})]
         # ---- Parte B: Cx ----
         if a == "UAR":
-            return [("UAA", "I-CSCF", {"ims_id": p.get("ims_id"), "scscf": "S-CSCF"})]
+            ims_id = p.get("ims_id")
+            if ims_id not in BY_IMS:        # numero no provisionado -> rechazo el registro
+                print(f"[{self.name}] UAR: {ims_id} NO esta en la base -> USER_UNKNOWN")
+                return [("UAA", "I-CSCF",
+                         {"ims_id": ims_id, "result": "DIAMETER_ERROR_USER_UNKNOWN"})]
+            return [("UAA", "I-CSCF",
+                     {"ims_id": ims_id, "scscf": "S-CSCF", "result": "SUCCESS"})]
         if a == "MAR":
             return [("MAA", "S-CSCF", {"ims_id": p.get("ims_id"), "av": "auth-vector"})]
         if a == "SAR":

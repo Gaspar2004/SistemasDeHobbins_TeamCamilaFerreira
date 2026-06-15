@@ -21,6 +21,8 @@ class PCSCF(Node):
             return [("SIP_REGISTER", "I-CSCF", p)]
         if a == "401_UNAUTHORIZED":        # del I-CSCF -> al UE
             return [("401_UNAUTHORIZED", ue, p)]
+        if a == "404_NOT_FOUND":           # del I-CSCF -> registro rechazado -> al UE
+            return [("404_NOT_FOUND", ue, p)]
         if a == "200_OK_REGISTER":         # del I-CSCF -> reserva recursos (Rx) y avisa al UE
             return [("AAR", "PCRF", {"ims_id": p.get("ims_id")}),
                     ("200_OK_REGISTER", ue, {})]

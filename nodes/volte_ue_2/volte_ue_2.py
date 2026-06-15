@@ -50,6 +50,10 @@ class UE2(Node):
         if a == "401_UNAUTHORIZED":
             return [("SIP_REGISTER", "P-CSCF",
                      {"ims_id": IMS_ID, "imsi": IMSI, "ip": self.ue_ip, "auth": "response"})]
+        if a == "404_NOT_FOUND":
+            print(f"[{self.name}] *** REGISTRO RECHAZADO: {p.get('reason')} "
+                  f"({p.get('ims_id')}) -> numero no esta en el HSS ***")
+            return []
         if a == "200_OK_REGISTER":
             print(f"[{self.name}] *** REGISTRADO en el IMS ***")
             return [("SIP_SUBSCRIBE", "P-CSCF", {"ims_id": IMS_ID})]

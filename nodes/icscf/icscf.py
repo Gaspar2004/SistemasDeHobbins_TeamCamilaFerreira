@@ -21,6 +21,11 @@ class ICSCF(Node):
             self.pending_reg[s] = p
             return [("UAR", "HSS", {"ims_id": p.get("ims_id")})]
         if a == "UAA":                 # del HSS -> reenvio el REGISTER al S-CSCF
+            if p.get("result") == "DIAMETER_ERROR_USER_UNKNOWN":   # numero no existe -> corto aca
+                self.pending_reg.pop(s, None)
+                print(f"[{self.name}] UAA USER_UNKNOWN para {p.get('ims_id')} -> 404 al P-CSCF")
+                return [("404_NOT_FOUND", "P-CSCF",
+                         {"ims_id": p.get("ims_id"), "reason": "User Unknown"})]
             return [("SIP_REGISTER", "S-CSCF", self.pending_reg.get(s, {}))]
         if a == "401_UNAUTHORIZED":    # del S-CSCF -> al P-CSCF
             return [("401_UNAUTHORIZED", "P-CSCF", p)]
